@@ -5,49 +5,81 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#D9694A';
+const tintColorDark = '#E07C5B';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#1C1B18',
+    muted: '#5B554B',
+    background: '#F4F1EA',
+    surface: '#FFFFFF',
+    surfaceAlt: '#EFE6D8',
+    border: '#E0D3BF',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#5C5A55',
+    tabIconDefault: '#7A746B',
     tabIconSelected: tintColorLight,
+    calm: '#2E7CA3',
+    warning: '#E58A2B',
+    danger: '#C2383A',
+    success: '#2F8C6D',
+    highlight: '#F9D8A7',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#F5F2EA',
+    muted: '#B8B1A6',
+    background: '#121513',
+    surface: '#1B211E',
+    surfaceAlt: '#232A26',
+    border: '#2E3732',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#A39D93',
+    tabIconDefault: '#8A857D',
     tabIconSelected: tintColorDark,
+    calm: '#5CB3C6',
+    warning: '#F0A65C',
+    danger: '#E06C6E',
+    success: '#6ACB95',
+    highlight: '#3A2C22',
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    display: 'Georgia',
+    body: 'Avenir Next',
+    label: 'Avenir Next Condensed',
+    mono: 'Menlo',
+    sans: 'Avenir Next',
+    serif: 'Georgia',
+    rounded: 'Avenir Next Condensed',
+  },
+  android: {
+    display: 'serif',
+    body: 'sans-serif-condensed',
+    label: 'sans-serif-condensed',
+    mono: 'monospace',
+    sans: 'sans-serif-condensed',
+    serif: 'serif',
+    rounded: 'sans-serif-condensed',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
+    display: 'serif',
+    body: 'sans-serif-condensed',
+    label: 'sans-serif-condensed',
     mono: 'monospace',
+    sans: 'sans-serif-condensed',
+    serif: 'serif',
+    rounded: 'sans-serif-condensed',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
+    display: "Georgia, 'Times New Roman', serif",
+    body: "'Avenir Next', 'Gill Sans', 'Trebuchet MS', sans-serif",
+    label: "'Avenir Next Condensed', 'Gill Sans', 'Trebuchet MS', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    sans: "'Avenir Next', 'Gill Sans', 'Trebuchet MS', sans-serif",
+    serif: "Georgia, 'Times New Roman', serif",
+    rounded: "'Avenir Next Condensed', 'Gill Sans', 'Trebuchet MS', sans-serif",
   },
 });
