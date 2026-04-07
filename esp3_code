@@ -1,0 +1,144 @@
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+#include <Wire.h>
+#include <DHT.h>
+#include <Adafruit_BMP280.h>
+#include <HardwareSerial.h>
+#include <DFRobotDFPlayerMini.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define DHTPIN 4
+#define DHTTYPE DHT22
+#define VIB_PIN 18
+#define SOIL_PIN 34
+
+#define RED_LED 25
+#define YELLOW_LED 26
+#define GREEN_LED 27
+
+#define DF_RX 16
+#define DF_TX 17
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+const char* ssid = "YOUR_WIFI";
+const char* password = "YOUR_PASSWORD";
+
+#define FIREBASE_HOST "your-project.firebaseio.com"
+#define FIREBASE_AUTH "your-secret-key"
+
+FirebaseData firebaseData;
+FirebaseConfig config;
+FirebaseAuth auth;
+
+DHT dht(DHTPIN, DHTTYPE);
+Adafruit_BMP280 bmp;
+HardwareSerial mySerial(2);
+DFRobotDFPlayerMini dfplayer;
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+bool bmpFound = false;
+bool dfFound = false;
+bool alarmPlaying = false;
+
+float temperature = 0.0;
+float humidity = 0.0;
+float pressure = 0.0;
+int soil = 0;
+int vibration = 0;
+float risk = 0;
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(VIB_PIN, INPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(YELLOW_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
+
+  Wire.begin(21, 22);
+
+  if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    display.clearDisplay();
+    display.display();
+  }
+
+  bmpFound = bmp.begin(0x76) || bmp.begin(0x77);
+
+  mySerial.begin(9600, SERIAL_8N1, DF_RX, DF_TX);
+  if (dfplayer.begin(mySerial)) {
+    dfplayer.volume(25);
+    dfFound = true;
+  }
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+
+  config.database_url = FIREBASE_HOST;
+  config.signer.tokens.legacy_token = FIREBASE_AUTH;
+  Firebase.begin(&config, &auth);
+}
+
+void loop() {
+  temperature = dht.readTemperature();
+  humidity = dht.readHumidity();
+
+  if (bmpFound) {
+    pressure = bmp.readPressure() / 100.0F;
+  }
+
+  soil = analogRead(SOIL_PIN);
+  vibration = digitalRead(VIB_PIN);
+
+  float soilNorm = map(soil, 0, 4095, 0, 100);
+  float vibNorm = vibration ? 100 : 0;
+  float weatherNorm = map(pressure, 950, 1050, 100, 0);
+
+  risk = soilNorm * 0.3 + vibNorm * 0.25 + weatherNorm * 0.2;
+
+  digitalWrite(RED_LED, LOW);
+  digitalWrite(YELLOW_LED, LOW);
+  digitalWrite(GREEN_LED, LOW);
+
+  if (risk < 30) {
+    digitalWrite(GREEN_LED, HIGH);
+    if (dfFound && alarmPlaying) {
+      dfplayer.stop();
+      alarmPlaying = false;
+    }
+  } else if (risk < 60) {
+    digitalWrite(YELLOW_LED, HIGH);
+    if (dfFound && alarmPlaying) {
+      dfplayer.stop();
+      alarmPlaying = false;
+    }
+  } else {
+    digitalWrite(RED_LED, HIGH);
+    if (dfFound && !alarmPlaying) {
+      dfplayer.play(1);
+      alarmPlaying = true;
+    }
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("Temp: "); display.println(temperature);
+  display.print("Hum: "); display.println(humidity);
+  display.print("Press: "); display.println(pressure);
+  display.print("Soil: "); display.println(soil);
+  display.print("Risk: "); display.println(risk);
+  display.display();
+
+  Firebase.setFloat(firebaseData, "/data/temperature", temperature);
+  Firebase.setFloat(firebaseData, "/data/humidity", humidity);
+  Firebase.setFloat(firebaseData, "/data/pressure", pressure);
+  Firebase.setInt(firebaseData, "/data/soil", soil);
+  Firebase.setFloat(firebaseData, "/data/risk", risk);
+
+  delay(2000);
+}
